@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Coach Robinson – Admin Dashboard</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        background: #f7f7f7;
+        margin: 0;
+        padding: 2rem;
+      }
+
+      h1 {
+        text-align: center;
+        color: #222;
+      }
+
+      #reviewList {
+        max-width: 700px;
+        margin: 2rem auto;
+      }
+
+      .review {
+        background: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        padding: 1rem 1.2rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .review strong {
+        font-size: 1.1rem;
+        color: #111;
+      }
+
+      .meta {
+        font-size: 0.9rem;
+        color: #555;
+        margin-top: 6px;
+      }
+
+      .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 24px;
+        margin-top: 10px;
+      }
+
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #bbb;
+        transition: 0.3s;
+        border-radius: 24px;
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
+      }
+
+      .toggle-switch input:checked + .slider {
+        background-color: #0ea5e9;
+      }
+
+      .toggle-switch input:checked + .slider:before {
+        transform: translateX(26px);
+      }
+
+      #flash {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #0ea5e9;
+        color: white;
+        padding: 0.8rem 1.2rem;
+        border-radius: 6px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      #flash.show {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Admin Review Dashboard</h1>
+    <div id="reviewList"></div>
+    <div id="flash"></div>
+
+    <script>
+      console.log("Admin dashboard JS loaded ✅");
+
+      const flash = document.getElementById("flash");
+
+      function showFlash(message) {
+        flash.textContent = message;
+        flash.classList.add("show");
+        setTimeout(() => flash.classList.remove("show"), 2000);
+      }
+
+      async function loadReviews() {
+        try {
+          const res = await fetch("http://localhost:3000/api/reviews/all");
+          const reviews = await res.json();
+
+          const container = document.getElementById("reviewList");
+          container.innerHTML = "";
+
+          if (!reviews.length) {
+            container.innerHTML = "<p>No reviews found.</p>";
+            return;
+          }
+
+          reviews.forEach((r) => {
+            const div = document.createElement("div");
+            div.className = "review";
+            div.innerHTML = `
+          <strong>${r.title}</strong> — <em>${r.reviewer_name}</em><br/>
+          <p>${r.body}</p>
+          <div class="meta">⭐ ${r.rating} | ${r.reviewer_role}</div>
+          <div style="margin-top: 8px; font-size: 0.85rem; color: ${
+            r.published ? "#0ea5e9" : "#999"
+          };">
+            Status: <strong>${
+              r.published ? "Published" : "Unpublished"
+            }</strong>
+          </div>
+        `;
+            container.appendChild(div);
+          });
+        } catch (err) {
+          console.error("Failed to load reviews", err);
+        }
+      }
+
+      loadReviews(); // Initial fetch
+    </script>
+  </body>
+</html>

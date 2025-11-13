@@ -1,0 +1,904 @@
+<!--
+  Coach Robinson – Reviews Landing Page (fixed + handoff-ready)
+  - Quick fixes applied
+  - OG/Twitter tags added
+  - JSON-LD added
+  - Reset button wired
+  - Proper /assets/ image paths
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Coach Robinson – From Better to Best | Reviews</title>
+
+    <!-- Primary SEO -->
+    <meta
+      name="description"
+      content="Share your experience with Coach Robinson. Read real stories and leave a review to help the next athlete go from better to best."
+    />
+
+    <!-- Open Graph -->
+    <meta
+      property="og:title"
+      content="Coach Robinson – From Better to Best | Reviews"
+    />
+    <meta
+      property="og:description"
+      content="Read and write reviews for Coach Robinson’s coaching."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/assets/og.jpg" />
+    <meta
+      property="og:image:alt"
+      content="Coach Robinson – From Better to Best"
+    />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#0f172a" />
+
+    <!-- Favicon -->
+    <link rel="icon" href="/assets/favicon.png" />
+
+    <!-- JSON-LD (Person) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Chris “Coach” Robinson",
+        "alternateName": "Coach Robinson",
+        "jobTitle": "Basketball Coach",
+        "description": "Youth coach focused on transitioning kids from better to best.",
+        "image": "/assets/coach-hero.jpg"
+      }
+    </script>
+
+    <style>
+      :root {
+        --bg: #0b1020; /* deep slate/navy */
+        --ink: #e5f0ff; /* high-contrast text */
+        --muted: #b6c3e3; /* secondary text */
+        --brand: #0ea5e9; /* cyan */
+        --brand-2: #a855f7; /* violet */
+        --card: #0f172a80; /* glass */
+        --ring: #94a3b8; /* borders */
+        --ok: #16a34a; /* success */
+        --warn: #f59e0b; /* warning */
+        --err: #ef4444; /* error */
+        --radius: 18px;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu,
+          Cantarell, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji",
+          "Segoe UI Emoji";
+        background: radial-gradient(
+            1200px 800px at 10% 10%,
+            #0b1535 0%,
+            #0b1020 50%
+          ),
+          radial-gradient(900px 700px at 90% 30%, #190c33 0%, #0b1020 60%),
+          linear-gradient(180deg, #0b1020, #0b1020);
+        color: var(--ink);
+        overflow-x: hidden;
+      }
+
+      /* Utility for screen-reader-only text */
+      .visually-hidden {
+        position: absolute !important;
+        clip: rect(1px, 1px, 1px, 1px);
+        padding: 0;
+        border: 0;
+        height: 1px;
+        width: 1px;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+
+      /* Focus styles */
+      :focus-visible {
+        outline: 2px solid var(--brand);
+        outline-offset: 3px;
+      }
+
+      /* --- Header --- */
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        backdrop-filter: blur(10px);
+        background: linear-gradient(
+          180deg,
+          rgba(11, 16, 32, 0.85),
+          rgba(11, 16, 32, 0.35)
+        );
+        border-bottom: 1px solid #1f2937;
+      }
+      .wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 18px 20px;
+      }
+      .nav {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        justify-content: space-between;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        color: inherit;
+      }
+      .logo {
+        width: 40px;
+        height: 40px;
+        display: grid;
+        place-items: center;
+        border-radius: 10px;
+        background: conic-gradient(
+          from 210deg at 50% 50%,
+          var(--brand),
+          var(--brand-2)
+        );
+        box-shadow: var(--shadow);
+      }
+      .brand h1 {
+        font-size: 1.05rem;
+        margin: 0;
+        letter-spacing: 0.5px;
+      }
+      .pill {
+        padding: 8px 14px;
+        border: 1px solid #233046;
+        border-radius: 999px;
+        color: var(--muted);
+        text-decoration: none;
+        transition: 0.2s transform, 0.2s background;
+      }
+      .pill:hover {
+        transform: translateY(-1px);
+        background: #0f172a;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        position: relative;
+        padding: 80px 20px 40px;
+      }
+      .hero-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 30px;
+        align-items: center;
+      }
+      .kicker {
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 2.5px;
+        font-size: 0.8rem;
+      }
+      .title {
+        font-size: clamp(1.8rem, 4.3vw, 3.2rem);
+        line-height: 1.15;
+        margin: 0.5rem 0 1rem;
+      }
+      .title .accent {
+        background: linear-gradient(90deg, var(--brand), var(--brand-2));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .subtitle {
+        color: var(--muted);
+        max-width: 58ch;
+      }
+      .cta-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 18px;
+      }
+      .btn {
+        padding: 12px 18px;
+        border-radius: 12px;
+        border: 1px solid #223047;
+        text-decoration: none;
+        color: white;
+        display: inline;
+        align-items: center;
+        gap: 10px;
+        transition: 0.2s transform, 0.2s background;
+      }
+
+      .btn.primary {
+        background: linear-gradient(
+          90deg,
+          rgba(14, 165, 233, 0.15),
+          rgba(168, 85, 247, 0.15)
+        );
+        border-color: #2a3a52;
+      }
+      .btn:hover {
+        transform: translateY(-2px);
+        background: #0f172a;
+      }
+
+      /* Hero art: silhouette + height marker (6'5") */
+      .hero-art {
+        position: relative;
+        background: linear-gradient(180deg, #0b0f23, #0b0f23cc);
+        border: 1px solid #1f2a3b;
+        border-radius: var(--radius);
+        padding: 20px;
+        min-height: 320px;
+        box-shadow: var(--shadow);
+      }
+
+      .coach-figure {
+        position: absolute;
+        right: 10px;
+        bottom: 0;
+        width: min(58%, 360px);
+        opacity: 0.95;
+      }
+      .coach-figure img {
+        width: 100%;
+        height: auto;
+        display: block;
+        filter: drop-shadow(0 10px 30px rgba(14, 165, 233, 0.2));
+        border-radius: 12px;
+      }
+
+      /* --- Growth Meter ribbon --- */
+      .ribbon {
+        margin: 20px 0 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+      .meter {
+        flex: 1;
+        height: 10px;
+        background: #121a2e;
+        border: 1px solid #1f2a3b;
+        border-radius: 999px;
+        position: relative;
+        overflow: hidden;
+      }
+      .meter .fill {
+        position: absolute;
+        inset: 0 50% 0 0;
+        background: linear-gradient(90deg, var(--brand), var(--brand-2));
+        transition: inset 0.5s ease;
+      }
+      .meter-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        margin-top: 6px;
+        color: #8aa0c2;
+      }
+
+      /* --- Sections --- */
+      section {
+        padding: 28px 20px;
+      }
+      .section-card {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid #233046;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 24px;
+      }
+      h2 {
+        font-size: clamp(1.3rem, 2.3vw, 1.8rem);
+        margin: 0 0 10px;
+      }
+      p {
+        margin: 0 0 12px;
+      }
+
+      /* --- Reviews List --- */
+      .reviews-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 16px;
+      }
+      .review {
+        background: rgba(8, 13, 29, 0.65);
+        border: 1px solid #1f2a3b;
+        border-radius: 16px;
+        padding: 16px;
+        position: relative;
+      }
+      .stars {
+        display: inline-flex;
+        gap: 2px;
+        margin: 6px 0;
+      }
+      .star {
+        width: 18px;
+        height: 18px;
+        display: inline-block;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      .summary {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+      .badge {
+        padding: 6px 10px;
+        border: 1px solid #223047;
+        border-radius: 999px;
+        color: var(--muted);
+      }
+
+      /* --- Form --- */
+      form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      form .full {
+        grid-column: 1 / -1;
+      }
+      label {
+        display: block;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 6px;
+      }
+      input,
+      textarea,
+      select {
+        width: 100%;
+        padding: 12px 12px;
+        border-radius: 12px;
+        border: 1px solid #223047;
+        background: #0b1020;
+        color: var(--ink);
+      }
+      textarea {
+        min-height: 110px;
+        resize: vertical;
+      }
+      .rating-chooser {
+        display: flex;
+        gap: 6px;
+      }
+      .rating-chooser button {
+        font-size: 22px;
+        line-height: 1;
+        color: #304059; /* default (unselected) */
+        transition: transform 0.15s, color 0.15s;
+      }
+      .rating-chooser button:hover {
+        transform: translateY(-1px);
+      }
+      .rating-chooser button[aria-pressed="true"] {
+        color: #ffd166; /* selected highlight */
+        text-shadow: 0 0 8px rgba(255, 209, 102, 0.25);
+      }
+
+      /* When hovering a star, preview fill up to that star */
+      .rating-chooser button.preview {
+        color: #ffe08a !important;
+      }
+      .note {
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .actions .btn {
+        cursor: pointer;
+      }
+
+      /* --- Footer --- */
+      footer {
+        padding: 40px 20px;
+        color: #9bb1d6;
+      }
+      footer a {
+        color: inherit;
+      }
+
+      /* --- Responsive --- */
+      @media (max-width: 900px) {
+        .hero-grid {
+          grid-template-columns: 1fr;
+        }
+        .coach-figure {
+          position: relative;
+          right: auto;
+          width: 100%;
+          margin-top: 10px;
+        }
+        .height-marker {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap nav">
+        <a class="brand" href="#top" aria-label="Coach Robinson">
+          <span class="logo" aria-hidden="true"></span>
+          <h1>Coach Robinson <span style="opacity: 0.65">• Reviews</span></h1>
+        </a>
+        <nav aria-label="Primary">
+          <a class="pill" href="#reviews">Reviews</a>
+          <a class="pill" href="#write">Write a Review</a>
+          <a class="pill" href="#about">About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top" class="wrap">
+      <!-- Hero -->
+      <section class="hero">
+        <div class="hero-grid">
+          <div>
+            <div class="kicker">From Better → Best</div>
+            <h2 class="title">
+              Real stories about a <b>Coach</b> who champions
+              <span class="accent">growth, grit, and greatness</span>.
+            </h2>
+            <p class="subtitle">
+              Coach Chris Robinson is a respected 6'5" basketball trainer and mentor, dedicated to helping young athletes elevate their game and mindset. His mission is clear: guiding players from better to best. Read real stories from athletes and families—or share your own review to inspire the next generation.
+            </p>
+            <div class="cta-row">
+              <a
+                href="#write"
+                class="btn primary"
+                aria-label="Write a review for Coach Robinson"
+                >✍️ Write a Review</a
+              >
+              <a href="#reviews" class="btn" aria-label="Read reviews"
+                >⭐ Read Reviews</a
+              >
+            </div>
+            <div class="ribbon" aria-hidden="true">
+              <span>Growth Meter</span>
+              <div class="meter" id="meter" title="Better to Best">
+                <div class="fill" id="meterFill"></div>
+              </div>
+              <span>Best</span>
+            </div>
+            <div class="meter-labels" aria-hidden="true">
+              <span>Better</span><span>Stronger</span><span>Sharper</span
+              ><span>Best</span>
+            </div>
+          </div>
+          <div class="hero-art">
+  <img
+    src="coach-hero.jpg"
+    alt="Coach Chris Robinson on the court"
+    class="chrisPic"
+    width="400"
+    loading="eager"
+    decoding="async"
+  />
+</div>
+
+            <div class="height-marker" aria-hidden="true"></div>
+            <div class="coach-figure" aria-hidden="true"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Reviews Summary -->
+      <section
+        id="reviews"
+        class="section-card"
+        aria-labelledby="reviewsHeading"
+      >
+        <div class="summary">
+          <h2 id="reviewsHeading" style="margin: 0">Reviews</h2>
+          <span class="badge" id="avgScore" aria-live="polite">Average: —</span>
+          <span class="badge" id="countBadge">0 reviews</span>
+          <span class="badge" id="filterBadge">All ratings</span>
+        </div>
+        <div class="actions" style="margin-bottom: 10px">
+          <label for="sortBy" class="visually-hidden">Sort</label>
+          <select id="sortBy" aria-label="Sort reviews">
+            <option value="newest">Newest</option>
+            <option value="highest">Highest rated</option>
+            <option value="lowest">Lowest rated</option>
+          </select>
+          <select id="filterBy" aria-label="Filter by rating">
+            <option value="all">All ratings</option>
+            <option value="5">5 stars</option>
+            <option value="4">4 stars & up</option>
+            <option value="3">3 stars & up</option>
+          </select>
+          
+        </div>
+        <div class="reviews-grid" id="reviewsGrid" aria-live="polite"></div>
+        <p class="note" style="margin-top: 12px">
+          Moderation note: Submitted reviews appear instantly on this page
+          (client‑side demo). For production, connect to a backend, store
+          safely, and add moderation.
+        </p>
+      </section>
+
+      <!-- Write a Review -->
+      <section id="write" class="section-card" aria-labelledby="writeHeading">
+        <h2 id="writeHeading">Write a Review</h2>
+        <form id="reviewForm" novalidate>
+          <div class="full">
+            <label for="name">Your name</label>
+            <input
+              id="name"
+              name="name"
+              placeholder="e.g., Jordan R."
+              autocomplete="name"
+              required
+            />
+          </div>
+          <div>
+            <label for="role">Your role</label>
+            <select id="role" name="role" required>
+              <option value="">Select one…</option>
+              <option>Athlete</option>
+              <option>Parent/Guardian</option>
+              <option>Fellow Coach</option>
+              <option>Program Director</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div>
+            <label>Rating</label>
+            <div
+              class="rating-chooser"
+              role="radiogroup"
+              aria-label="Star rating"
+            >
+              <button
+                type="button"
+                data-rate="1"
+                aria-pressed="false"
+                aria-label="1 star"
+              >
+                ★
+              </button>
+              <button
+                type="button"
+                data-rate="2"
+                aria-pressed="false"
+                aria-label="2 stars"
+              >
+                ★
+              </button>
+              <button
+                type="button"
+                data-rate="3"
+                aria-pressed="false"
+                aria-label="3 stars"
+              >
+                ★
+              </button>
+              <button
+                type="button"
+                data-rate="4"
+                aria-pressed="false"
+                aria-label="4 stars"
+              >
+                ★
+              </button>
+              <button
+                type="button"
+                data-rate="5"
+                aria-pressed="false"
+                aria-label="5 stars"
+              >
+                ★
+              </button>
+              <input type="hidden" id="rating" name="rating" required />
+            </div>
+          </div>
+          <div class="full">
+            <label for="title">Headline</label>
+            <input
+              id="title"
+              name="title"
+              placeholder="e.g., Saw my kid's confidence skyrocket"
+              required
+            />
+          </div>
+          <div class="full">
+            <label for="body">Your story</label>
+            <textarea
+              id="body"
+              name="body"
+              placeholder="What changed? What stood out about Coach Robinson’s approach?"
+              required
+            ></textarea>
+          </div>
+          <div class="full actions">
+            <button class="btn primary" type="submit">Submit Review</button>
+            <span class="note" id="formNote" aria-live="polite"></span>
+          </div>
+          <p class="note full">
+            By submitting, you agree your review may be displayed publicly.
+            Avoid sharing personal medical or contact info.
+          </p>
+        </form>
+      </section>
+
+      <!-- About -->
+      <section id="about" class="section-card" aria-labelledby="aboutHeading">
+        <h2 id="aboutHeading">About Coach Robinson</h2>
+        <p>
+          Chris Robinson combines a lifelong passion for basketball with a deep commitment to youth development. Over the past decade, he has mentored and elevated young athletes by drawing on eight years of high school coaching and over twelve years as a dedicated skills trainer. His proven track record includes helping players earn collegiate scholarships and achieve their dreams of playing professionally overseas.
+
+Beyond the court, Chris amplifies his impact through the written word — serving for five years as a scout and writer for Prep Hoops Wisconsin, and as a national contributor to Prep Hoops Next, where he continues to spotlight rising talent and shape the future of the game.
+        </p>
+      </section>
+    </main>
+
+    <footer>
+      <div
+        class="wrap"
+        style="
+          display: flex;
+          justify-content: space-between;
+          gap: 14px;
+          flex-wrap: wrap;
+        "
+      >
+        <div>© <span id="year"></span> Built by Digital Roots.</div>
+        <div>
+          <a href="#write">Share your story</a> · <a href="#about">Contact</a>
+        </div>
+      </div>
+    </footer>
+
+
+
+    
+    <script>
+document.addEventListener("DOMContentLoaded", () => {
+  // --- Utilities ---
+  const $ = (sel, el = document) => el.querySelector(sel);
+  const $$ = (sel, el = document) => Array.from(el.querySelectorAll(sel));
+
+  function escapeHTML(s) {
+    return String(s).replace(/[&<>\"']/g, (m) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[m]));
+  }
+
+  function formatDate(ms) {
+    const d = new Date(ms);
+    return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  }
+
+  function starSVG(filled) {
+    const color = filled ? "url(#gradStar)" : "none";
+    const stroke = filled ? "none" : "#304059";
+    return `
+      <svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+        <defs><linearGradient id="gradStar" x1="0" x2="1"><stop offset="0" stop-color="#0ea5e9"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs>
+        <path d="M12 2.5l2.9 6 6.6.6-5 4.3 1.5 6.4-6-3.4-6 3.4 1.5-6.4-5-4.3 6.6-.6z" fill="${color}" stroke="${stroke}" stroke-width="1.2"/>
+      </svg>`;
+  }
+
+  // --- Global Data ---
+  let reviews = [];
+  const isAdmin = window.location.pathname.includes("admin");
+
+  // --- Render for Public Users ---
+  function renderPublicReviews(list) {
+    const avg = list.length ? (list.reduce((a, b) => a + b.rating, 0) / list.length).toFixed(1) : "—";
+    $("#avgScore").textContent = `Average: ${avg}★`;
+    $("#countBadge").textContent = `${list.length} review${list.length === 1 ? "" : "s"}`;
+
+    $("#reviewsGrid").innerHTML = list.map(item => {
+      const stars = Array.from({ length: 5 }).map((_, i) => starSVG(i < item.rating)).join("");
+      return `
+        <article class="review" aria-label="Review">
+          <div class="stars" aria-hidden="true">${stars}</div>
+          <h3 style="margin:6px 0 4px">${escapeHTML(item.title)}</h3>
+          <p>${escapeHTML(item.body)}</p>
+          <div class="meta">— ${escapeHTML(item.reviewer_name)} • ${escapeHTML(item.reviewer_role)} • ${formatDate(item.date)}</div>
+        </article>`;
+    }).join("");
+  }
+
+// ⭐ Star Rating (button-based version)
+const starButtons = $$(".rating-chooser button");
+const ratingInput = $("#rating");
+
+if (starButtons.length && ratingInput) {
+  starButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const rating = Number(btn.dataset.rate);
+      ratingInput.value = rating;
+
+      // Update visual state
+      starButtons.forEach((b, i) => {
+        b.setAttribute("aria-pressed", i < rating ? "true" : "false");
+        b.classList.toggle("selected", i < rating);
+      });
+    });
+  });
+}
+
+
+
+
+  function applySortFilter() {
+    let list = reviews.slice();
+    const f = $("#filterBy")?.value;
+    if (f && f !== "all") list = list.filter(r => r.rating >= Number(f));
+    const s = $("#sortBy")?.value;
+    list.sort((a, b) => {
+      if (s === "highest") return b.rating - a.rating || b.date - a.date;
+      if (s === "lowest") return a.rating - b.rating || a.date - b.date;
+      return b.date - a.date;
+    });
+    renderPublicReviews(list);
+  }
+
+  // --- Admin Review Rendering (no toggles) ---
+  async function renderAdminReviews(list) {
+    const container = document.getElementById("adminReviews");
+    container.innerHTML = '';
+
+    if (!list.length) {
+      container.innerHTML = '<p>No reviews found.</p>';
+      return;
+    }
+
+    list.forEach((review) => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "review-item";
+      wrapper.innerHTML = `
+        <h3>${review.title} (${review.rating}★)</h3>
+        <p>${review.body}</p>
+        <p><strong>${review.reviewer_name}</strong> — ${review.reviewer_role}</p>
+        <p>Status: <strong>${review.published ? "Published" : "Unpublished"}</strong></p>
+        <hr>
+      `;
+      container.appendChild(wrapper);
+    });
+  }
+
+  // --- Submit Review ---
+  const form = $("#reviewForm");
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formNote = $("#formNote");
+      formNote.textContent = "";
+
+      const data = Object.fromEntries(new FormData(form).entries());
+      const errors = [];
+      if (!data.name?.trim()) errors.push("name");
+      if (!data.role?.trim()) errors.push("role");
+      const rating = Number(data.rating);
+      if (!rating || rating < 1 || rating > 5) errors.push("rating");
+      if (!data.title?.trim()) errors.push("title");
+      if (!data.body?.trim()) errors.push("story");
+
+      if (errors.length) {
+        formNote.textContent = `Please complete: ${errors.join(", ")}.`;
+        formNote.style.color = "var(--warn)";
+        return;
+      }
+
+      const newReview = {
+        coach_id: 1,
+        reviewer_name: data.name.trim(),
+        reviewer_role: data.role,
+        rating,
+        title: data.title.trim(),
+        body: data.body.trim(),
+      };
+
+      try {
+        const res = await fetch("http://localhost:3000/api/reviews", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newReview),
+        });
+
+        if (!res.ok) throw new Error("Failed to submit review");
+
+        form.reset();
+formNote.textContent = "Thanks for sharing your story!";
+formNote.style.color = "var(--ok)";
+ratingInput.value = ""; // reset the hidden input
+
+// Unselect all stars visually
+starButtons.forEach((btn) => {
+  btn.classList.remove("selected");
+  btn.setAttribute("aria-pressed", "false");
+});
+
+refreshReviewsFromServer(); // refresh view
+
+      } catch (err) {
+        formNote.textContent = "Oops! Could not submit. Please try again.";
+        formNote.style.color = "var(--warn)";
+        console.error("[submit review]", err);
+      }
+    });
+  }
+
+  // --- Reload Reviews ---
+  async function refreshReviewsFromServer() {
+    try {
+      const res = await fetch(isAdmin
+        ? "http://localhost:3000/api/reviews/all"
+        : "http://localhost:3000/api/reviews"
+      );
+      reviews = await res.json();
+      isAdmin ? renderAdminReviews(reviews) : applySortFilter();
+    } catch (err) {
+      console.error("Error loading reviews", err);
+    }
+  }
+
+  // --- Init ---
+  refreshReviewsFromServer();
+
+  if (!isAdmin) {
+    $("#sortBy")?.addEventListener("change", applySortFilter);
+    $("#filterBy")?.addEventListener("change", applySortFilter);
+    $("#resetBtn")?.addEventListener("click", () => {
+      $("#sortBy").value = "newest";
+      $("#filterBy").value = "all";
+      applySortFilter();
+    });
+
+    const fill = $("#meterFill");
+    if (fill) {
+      let t = 0;
+      function tick() {
+        t += 0.008;
+        if (t > 1) t = 0;
+        const rightInset = Math.max(0, 50 - Math.sin(t * 2 * Math.PI) * 40);
+        fill.style.inset = `0 ${rightInset}% 0 0`;
+        requestAnimationFrame(tick);
+      }
+      tick();
+    }
+
+    $("#year").textContent = new Date().getFullYear();
+  }
+});
+</script>
+
+
+
+  </body>
+</html>
