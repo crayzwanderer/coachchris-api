@@ -2,6 +2,9 @@ import express from "express";
 import cors from "cors";
 import { pool } from "./db.js";
 
+const cors = require("cors");
+app.use(cors());
+
 const app = express();
 
 app.use(cors());
