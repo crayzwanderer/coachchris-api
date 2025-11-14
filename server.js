@@ -1,12 +1,11 @@
-import express from "express";
-import cors from "cors";
-import { pool } from "./db.js";
-
+// server.js
+const express = require("express");
 const cors = require("cors");
-app.use(cors());
+const { pool } = require("./src/db.js"); // require() — not import
 
 const app = express();
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
