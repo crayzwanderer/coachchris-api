@@ -825,7 +825,7 @@ if (starButtons.length && ratingInput) {
       };
 
       try {
-        const res = await fetch("http://localhost:3000/api/reviews", {
+        const res = await fetch("https://coachchris-api.up.railway.app/api/reviews", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newReview),
@@ -856,17 +856,18 @@ refreshReviewsFromServer(); // refresh view
 
   // --- Reload Reviews ---
   async function refreshReviewsFromServer() {
-    try {
-      const res = await fetch(isAdmin
-        ? "http://localhost:3000/api/reviews/all"
-        : "http://localhost:3000/api/reviews"
-      );
-      reviews = await res.json();
-      isAdmin ? renderAdminReviews(reviews) : applySortFilter();
-    } catch (err) {
-      console.error("Error loading reviews", err);
-    }
+  try {
+    const res = await fetch(isAdmin
+      ? "https://coachchris-api.up.railway.app/api/reviews/all"
+      : "https://coachchris-api.up.railway.app/api/reviews"
+    );
+    reviews = await res.json();
+    isAdmin ? renderAdminReviews(reviews) : applySortFilter();
+  } catch (err) {
+    console.error("Error loading reviews", err);
   }
+}
+
 
   // --- Init ---
   refreshReviewsFromServer();
