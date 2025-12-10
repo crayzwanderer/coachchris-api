@@ -1,3 +1,4 @@
+// server.js (Production Version)
 import express from "express";
 import cors from "cors";
 import mysql from "mysql2/promise";
@@ -7,6 +8,9 @@ dotenv.config();
 
 const app = express();
 
+// -------------------------------------
+// Middleware
+// -------------------------------------
 app.use(
   cors({
     origin: "*",
@@ -18,20 +22,20 @@ app.use(
 app.use(express.json());
 
 // -------------------------------------
-// MySQL Pool
+// MySQL Connection Pool
 // -------------------------------------
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  port: process.env.DB_PORT,
+  port: process.env.DB_PORT || 3306,
   waitForConnections: true,
   connectionLimit: 10,
 });
 
 // -------------------------------------
-// GET published reviews (public)
+// GET Published Reviews (Public)
 // -------------------------------------
 app.get("/api/reviews", async (req, res) => {
   try {
@@ -40,26 +44,26 @@ app.get("/api/reviews", async (req, res) => {
     );
     res.json(rows);
   } catch (err) {
-    console.error("Error fetching reviews:", err);
+    console.error("❌ Error fetching published reviews:", err);
     res.status(500).json({ error: "Database error" });
   }
 });
 
 // -------------------------------------
-// GET all reviews (admin)
+// GET ALL Reviews (Admin)
 // -------------------------------------
 app.get("/api/reviews/all", async (req, res) => {
   try {
     const [rows] = await pool.query("SELECT * FROM reviews ORDER BY date DESC");
     res.json(rows);
   } catch (err) {
-    console.error("DB error:", err);
+    console.error("❌ Error fetching all reviews:", err);
     res.status(500).json({ error: "Database error" });
   }
 });
 
 // -------------------------------------
-// POST create review
+// POST Create a New Review
 // -------------------------------------
 app.post("/api/reviews", async (req, res) => {
   const { coach_id, reviewer_name, reviewer_role, rating, title, body } =
@@ -77,23 +81,24 @@ app.post("/api/reviews", async (req, res) => {
   }
 
   try {
-    const now = Date.now();
+    const timestamp = Date.now();
 
     const [result] = await pool.query(
-      `INSERT INTO reviews (coach_id, reviewer_name, reviewer_role, rating, title, body, published, date, source)
+      `INSERT INTO reviews 
+      (coach_id, reviewer_name, reviewer_role, rating, title, body, published, date, source)
       VALUES (?, ?, ?, ?, ?, ?, 0, ?, 'Web')`,
-      [coach_id, reviewer_name, reviewer_role, rating, title, body, now]
+      [coach_id, reviewer_name, reviewer_role, rating, title, body, timestamp]
     );
 
-    res.status(201).json({ id: result.insertId });
+    res.status(201).json({ message: "Review added", id: result.insertId });
   } catch (err) {
-    console.error("Insert error:", err);
+    console.error("❌ Insert error:", err);
     res.status(500).json({ error: "Database insert error" });
   }
 });
 
 // -------------------------------------
-// PATCH publish toggle
+// PATCH Publish Toggle
 // -------------------------------------
 app.patch("/api/reviews/:id/publish", async (req, res) => {
   const id = req.params.id;
@@ -105,18 +110,25 @@ app.patch("/api/reviews/:id/publish", async (req, res) => {
       id,
     ]);
 
-    res.json({ message: "Updated", id, published });
+    res.json({ message: "Status updated", id, published });
   } catch (err) {
-    console.error("Update error:", err);
+    console.error("❌ Update error:", err);
     res.status(500).json({ error: "Database update error" });
   }
 });
 
+// -------------------------------------
+// Health Check
 // -------------------------------------
 app.get("/", (req, res) => {
   res.send("Coach Robinson API is running with MySQL 🚀");
 });
 
 // -------------------------------------
+// Start Server
+// -------------------------------------
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("API running on:", PORT));
+
+app.listen(PORT, () => {
+  console.log(`🚀 API running on port ${PORT}`);
+});
