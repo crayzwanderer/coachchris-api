@@ -3,6 +3,7 @@
   "name": "coachchris-api",
   "version": "1.0.0",
   "main": "server.js",
+  "forceRebuild": "1",
   "scripts": {
     "start": "node server.js"
   },
