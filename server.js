@@ -1,80 +1,73 @@
-// server.js
-const express = require("express");
-const cors = require("cors");
-const { pool } = require("./src/db.js"); // require() — not import
+// server.js (Dummy API - No Database)
+import express from "express";
+import cors from "cors";
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// Allowed origins for frontend access
+const allowedOrigins = [
+  "https://coachchris.netlify.app",
+  "http://127.0.0.1:5500",
+  "http://localhost:5500",
+];
+
+// CORS setup
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("CORS blocked"));
+    },
+    methods: ["GET", "POST"],
+  })
+);
+
+// Parse JSON
 app.use(express.json());
 
-// ✅ POST: Add a new review
-app.post("/api/reviews", async (req, res) => {
-  try {
-    const { coach_id, reviewer_name, reviewer_role, rating, title, body } =
-      req.body;
-
-    if (
-      !coach_id ||
-      !reviewer_name ||
-      !reviewer_role ||
-      !rating ||
-      !title ||
-      !body
-    ) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    const [result] = await pool.execute(
-      `INSERT INTO reviews 
-        (coach_id, reviewer_name, reviewer_role, rating, title, body, published, source)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [coach_id, reviewer_name, reviewer_role, rating, title, body, 0, "Web"]
-    );
-
-    res.status(201).json({ message: "Review inserted!", id: result.insertId });
-  } catch (err) {
-    console.error("[POST /api/reviews] ERROR:", err);
-    res.status(500).json({
-      error: "Failed to insert review.",
-      details: err.message,
-    });
-  }
-});
-
-// ✅ GET: ALL reviews (admin)
-app.get("/api/reviews/all", async (req, res) => {
-  try {
-    const [rows] = await pool.query(`
-      SELECT * FROM reviews ORDER BY id DESC
-    `);
-    res.json(rows);
-  } catch (err) {
-    console.error("[GET /api/reviews/all]", err);
-    res.status(500).json({ error: "Failed to fetch all reviews." });
-  }
-});
-
-// ✅ GET: Only PUBLISHED reviews (public)
-app.get("/api/reviews", async (req, res) => {
-  try {
-    const [rows] = await pool.query(`
-      SELECT * FROM reviews ORDER BY id DESC
-    `);
-    res.json(rows);
-  } catch (err) {
-    console.error("[GET /api/reviews]", err);
-    res.status(500).json({ error: "Failed to fetch reviews." });
-  }
-});
-
-// ✅ Root health check
+// Health check
 app.get("/", (req, res) => {
-  res.send("🚀 Coach Robinson Reviews API is running!");
+  res.send("🚀 Coach Robinson Dummy API is running!");
+});
+
+// Dummy reviews endpoint
+app.get("/api/reviews", (req, res) => {
+  const dummyReviews = [
+    {
+      id: 1,
+      coach_id: 1,
+      reviewer_name: "Test Parent",
+      reviewer_role: "Parent/Guardian",
+      rating: 5,
+      title: "This is a working dummy review!",
+      body: "If you see this on the frontend, your API is working perfectly.",
+      date: Date.now(),
+    },
+    {
+      id: 2,
+      coach_id: 1,
+      reviewer_name: "Athlete Demo",
+      reviewer_role: "Athlete",
+      rating: 4,
+      title: "Coach helped me level up",
+      body: "Super supportive and motivating!",
+      date: Date.now(),
+    },
+  ];
+
+  res.json(dummyReviews);
+});
+
+// Dummy POST endpoint (does not save anything)
+app.post("/api/reviews", (req, res) => {
+  console.log("Received new review:", req.body);
+  res.json({ message: "Dummy POST received!", data: req.body });
 });
 
 // Start server
-app.listen(3000, () => {
-  console.log("API running on http://coachchris-api.up.railway.app");
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Dummy API running on port ${PORT}`);
 });
