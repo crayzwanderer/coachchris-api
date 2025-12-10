@@ -48,7 +48,11 @@ app.get("/api/reviews/all", async (req, res) => {
   }
 });
 
-// ---------------------------------------------
-app.listen(process.env.PORT || 3000, () =>
-  console.log(`🚀 API running on port ${process.env.PORT || 3000}`)
-);
+// --------------------------------------------------
+// 🚀 FIXED: ONLY ONE LISTEN CALL + using Railway PORT
+// --------------------------------------------------
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`🚀 API running on port ${PORT}`);
+});
