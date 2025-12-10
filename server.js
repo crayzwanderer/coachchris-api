@@ -3,13 +3,25 @@ import express from "express";
 import cors from "cors";
 
 const app = express();
-app.use(cors());
+
+// -----------------------------
+// CORS
+// -----------------------------
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PATCH"],
+    allowedHeaders: ["Content-Type"],
+  })
+);
+
 app.use(express.json());
 
-// -----------------------------------------
-// DUMMY DATA (used until database added)
-// -----------------------------------------
-let dummyReviews = [
+// -----------------------------
+// TEMPORARY IN-MEMORY REVIEWS
+// (Replace with MySQL later when ready)
+// -----------------------------
+let reviews = [
   {
     id: 1,
     coach_id: 1,
@@ -18,8 +30,8 @@ let dummyReviews = [
     rating: 5,
     title: "This is a working dummy review!",
     body: "If you see this on the frontend, your API is working perfectly.",
+    published: 0,
     date: Date.now(),
-    published: true,
   },
   {
     id: 2,
@@ -29,71 +41,91 @@ let dummyReviews = [
     rating: 4,
     title: "Coach helped me level up",
     body: "Super supportive and motivating!",
+    published: 0,
     date: Date.now(),
-    published: false,
   },
 ];
 
-// -----------------------------------------
-// PUBLIC ROUTE – returns only published reviews
-// -----------------------------------------
+// -----------------------------
+// PUBLIC ROUTE (Only show published reviews)
+// -----------------------------
 app.get("/api/reviews", (req, res) => {
-  const publishedReviews = dummyReviews.filter((r) => r.published);
-  res.json(publishedReviews);
+  const publishedOnly = reviews.filter((r) => r.published === 1);
+  res.json(publishedOnly);
 });
 
-// -----------------------------------------
-// ADMIN ROUTE – returns ALL reviews
-// -----------------------------------------
+// -----------------------------
+// ADMIN ROUTE (Return ALL reviews)
+// -----------------------------
 app.get("/api/reviews/all", (req, res) => {
-  res.json(dummyReviews);
+  res.json(reviews);
 });
 
-// -----------------------------------------
-// POST – submit new review
-// -----------------------------------------
+// -----------------------------
+// POST Review (Public submission)
+// -----------------------------
 app.post("/api/reviews", (req, res) => {
   const { coach_id, reviewer_name, reviewer_role, rating, title, body } =
     req.body;
 
-  if (!reviewer_name || !reviewer_role || !rating || !title || !body) {
+  if (
+    !coach_id ||
+    !reviewer_name ||
+    !reviewer_role ||
+    !rating ||
+    !title ||
+    !body
+  ) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
   const newReview = {
-    id: dummyReviews.length + 1,
+    id: reviews.length + 1,
     coach_id,
     reviewer_name,
     reviewer_role,
     rating,
     title,
     body,
+    published: 0,
     date: Date.now(),
-    published: false, // default: hidden until admin publishes
   };
 
-  dummyReviews.push(newReview);
+  reviews.push(newReview);
   res.status(201).json({ message: "Review added", review: newReview });
 });
 
-// -----------------------------------------
-// PATCH – toggle published/unpublished
-// -----------------------------------------
+// -----------------------------
+// PATCH Publish / Unpublish
+// -----------------------------
 app.patch("/api/reviews/:id/publish", (req, res) => {
   const id = Number(req.params.id);
   const { published } = req.body;
 
-  const review = dummyReviews.find((r) => r.id === id);
-  if (!review) return res.status(404).json({ error: "Review not found" });
+  const review = reviews.find((r) => r.id === id);
+  if (!review) {
+    return res.status(404).json({ error: "Review not found" });
+  }
 
-  review.published = Boolean(published);
+  review.published = published ? 1 : 0;
 
-  res.json({ message: "Publish status updated", review });
+  res.json({
+    message: "Publish status updated",
+    id,
+    published: review.published,
+  });
 });
 
-// -----------------------------------------
-// START SERVER
-// -----------------------------------------
+// -----------------------------
+// Health Check
+// -----------------------------
+app.get("/", (_, res) => {
+  res.send("Coach Robinson API is running (dummy mode).");
+});
+
+// -----------------------------
+// Start Server
+// -----------------------------
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`API running on port ${PORT}`);

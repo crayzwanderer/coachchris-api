@@ -696,6 +696,42 @@ document.addEventListener("DOMContentLoaded", () => {
   const $ = (sel, el = document) => el.querySelector(sel);
   const $$ = (sel, el = document) => Array.from(el.querySelectorAll(sel));
 
+  // ⭐⭐⭐ STAR RATING FIX (WORKING & POLISHED) ⭐⭐⭐
+const starButtons = $$(".rating-chooser button");
+const ratingInput = $("#rating");
+
+if (starButtons.length && ratingInput) {
+  starButtons.forEach((btn, index) => {
+    
+    // When a star is clicked
+    btn.addEventListener("click", () => {
+      const rating = index + 1;
+      ratingInput.value = rating;
+
+      // Update selected state
+      starButtons.forEach((b, i) => {
+        const isSelected = i < rating;
+        b.setAttribute("aria-pressed", isSelected ? "true" : "false");
+        b.classList.toggle("selected", isSelected);
+      });
+    });
+
+    // Hover preview
+    btn.addEventListener("mouseenter", () => {
+      const hoverRating = index + 1;
+      starButtons.forEach((b, i) => {
+        b.classList.toggle("preview", i < hoverRating);
+      });
+    });
+
+    // Remove preview on leave
+    btn.addEventListener("mouseleave", () => {
+      starButtons.forEach(b => b.classList.remove("preview"));
+    });
+  });
+}
+
+
   // -------------------------------------
   // UTIL HELPERS
   // -------------------------------------

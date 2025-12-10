@@ -12,6 +12,7 @@
         margin: 0;
         padding: 2rem;
       }
+
       h1 {
         text-align: center;
         color: #222;
@@ -30,28 +31,35 @@
         margin-bottom: 1.5rem;
       }
 
+      .meta {
+        font-size: 0.9rem;
+        margin: 6px 0;
+        color: #444;
+      }
+
+      /* Toggle Switch */
       .toggle-switch {
         position: relative;
         display: inline-block;
         width: 50px;
         height: 24px;
       }
+
       .toggle-switch input {
         opacity: 0;
         width: 0;
         height: 0;
       }
+
       .slider {
         position: absolute;
         cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        inset: 0;
         background-color: #bbb;
         transition: 0.3s;
         border-radius: 24px;
       }
+
       .slider:before {
         content: "";
         position: absolute;
@@ -67,10 +75,12 @@
       .toggle-switch input:checked + .slider {
         background-color: #0ea5e9;
       }
+
       .toggle-switch input:checked + .slider:before {
         transform: translateX(26px);
       }
 
+      /* Flash message */
       #flash {
         position: fixed;
         bottom: 20px;
@@ -83,6 +93,7 @@
         opacity: 0;
         transition: opacity 0.3s;
       }
+
       #flash.show {
         opacity: 1;
       }
@@ -96,26 +107,33 @@
     <div id="flash"></div>
 
     <script>
-      const API =
-        "https://coachchris-api-production.up.railway.app/api/reviews";
+      console.log("Admin dashboard JS loaded ✅");
+
+      const API_BASE = "https://coachchris-api-production.up.railway.app/api";
+
       const flash = document.getElementById("flash");
 
-      function showFlash(msg) {
-        flash.textContent = msg;
+      function showFlash(message) {
+        flash.textContent = message;
         flash.classList.add("show");
         setTimeout(() => flash.classList.remove("show"), 2000);
       }
 
+      // ------------------------
+      // Load All Reviews (Admin)
+      // ------------------------
       async function loadReviews() {
         try {
-          const res = await fetch(API); // ✅ CORRECT ROUTE
+          const res = await fetch(`${API_BASE}/reviews/all`);
+          if (!res.ok) throw new Error("API error");
+
           const reviews = await res.json();
 
           const container = document.getElementById("reviewList");
           container.innerHTML = "";
 
           if (!reviews.length) {
-            container.innerHTML = "<p>No reviews yet.</p>";
+            container.innerHTML = "<p>No reviews found.</p>";
             return;
           }
 
@@ -124,57 +142,65 @@
             div.className = "review";
 
             div.innerHTML = `
-        <strong>${r.title}</strong> — <em>${r.reviewer_name}</em>
-        <p>${r.body}</p>
-        <div class="meta">⭐ ${r.rating} | ${r.reviewer_role}</div>
+              <strong>${r.title}</strong> — <em>${r.reviewer_name}</em>
+              <div class="meta">⭐ ${r.rating} | ${r.reviewer_role}</div>
+              <p>${r.body}</p>
 
-        <label class="toggle-switch">
-          <input type="checkbox" data-id="${r.id}" ${
+              <label class="toggle-switch">
+                <input type="checkbox" data-id="${r.id}" ${
               r.published ? "checked" : ""
             }>
-          <span class="slider"></span>
-        </label>
-        <span style="margin-left:8px;">${
-          r.published ? "Published" : "Unpublished"
-        }</span>
-      `;
+                <span class="slider"></span>
+              </label>
+
+              <span style="margin-left: 8px;">
+                ${r.published ? "Published" : "Unpublished"}
+              </span>
+            `;
 
             container.appendChild(div);
           });
 
           attachToggleListeners();
         } catch (err) {
-          console.error("Failed to load reviews:", err);
+          console.error("Failed to load reviews", err);
         }
       }
 
+      // ------------------------
+      // Toggle Published Status
+      // ------------------------
       function attachToggleListeners() {
-        document.querySelectorAll("[data-id]").forEach((checkbox) => {
-          checkbox.addEventListener("change", async () => {
-            const id = checkbox.dataset.id;
-            const published = checkbox.checked;
+        document
+          .querySelectorAll(".toggle-switch input")
+          .forEach((checkbox) => {
+            checkbox.addEventListener("change", async () => {
+              const id = checkbox.dataset.id;
+              const published = checkbox.checked;
 
-            try {
-              const res = await fetch(`${API}/${id}/publish`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ published }),
-              });
+              try {
+                const res = await fetch(`${API_BASE}/reviews/${id}/publish`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ published }),
+                });
 
-              if (!res.ok) throw new Error("Update failed");
+                if (!res.ok) throw new Error("Failed to update");
 
-              showFlash(
-                published ? "Review Published ✔" : "Review Unpublished ✖"
-              );
-              loadReviews();
-            } catch (err) {
-              console.error("Publish toggle failed:", err);
-              showFlash("⚠ Could not update review");
-            }
+                showFlash(
+                  published ? "Review Published ✔" : "Review Unpublished ✖"
+                );
+
+                loadReviews();
+              } catch (err) {
+                console.error("Toggle error:", err);
+                showFlash("⚠ Failed to update review");
+              }
+            });
           });
-        });
       }
 
+      // Init
       loadReviews();
     </script>
   </body>
