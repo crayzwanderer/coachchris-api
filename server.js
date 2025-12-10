@@ -1,73 +1,100 @@
-// server.js (Dummy API - No Database)
+// server.js
 import express from "express";
 import cors from "cors";
 
 const app = express();
-
-// Allowed origins for frontend access
-const allowedOrigins = [
-  "https://coachchris.netlify.app",
-  "http://127.0.0.1:5500",
-  "http://localhost:5500",
-];
-
-// CORS setup
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error("CORS blocked"));
-    },
-    methods: ["GET", "POST"],
-  })
-);
-
-// Parse JSON
+app.use(cors());
 app.use(express.json());
 
-// Health check
-app.get("/", (req, res) => {
-  res.send("🚀 Coach Robinson Dummy API is running!");
+// -----------------------------------------
+// DUMMY DATA (used until database added)
+// -----------------------------------------
+let dummyReviews = [
+  {
+    id: 1,
+    coach_id: 1,
+    reviewer_name: "Test Parent",
+    reviewer_role: "Parent/Guardian",
+    rating: 5,
+    title: "This is a working dummy review!",
+    body: "If you see this on the frontend, your API is working perfectly.",
+    date: Date.now(),
+    published: true,
+  },
+  {
+    id: 2,
+    coach_id: 1,
+    reviewer_name: "Athlete Demo",
+    reviewer_role: "Athlete",
+    rating: 4,
+    title: "Coach helped me level up",
+    body: "Super supportive and motivating!",
+    date: Date.now(),
+    published: false,
+  },
+];
+
+// -----------------------------------------
+// PUBLIC ROUTE – returns only published reviews
+// -----------------------------------------
+app.get("/api/reviews", (req, res) => {
+  const publishedReviews = dummyReviews.filter((r) => r.published);
+  res.json(publishedReviews);
 });
 
-// Dummy reviews endpoint
-app.get("/api/reviews", (req, res) => {
-  const dummyReviews = [
-    {
-      id: 1,
-      coach_id: 1,
-      reviewer_name: "Test Parent",
-      reviewer_role: "Parent/Guardian",
-      rating: 5,
-      title: "This is a working dummy review!",
-      body: "If you see this on the frontend, your API is working perfectly.",
-      date: Date.now(),
-    },
-    {
-      id: 2,
-      coach_id: 1,
-      reviewer_name: "Athlete Demo",
-      reviewer_role: "Athlete",
-      rating: 4,
-      title: "Coach helped me level up",
-      body: "Super supportive and motivating!",
-      date: Date.now(),
-    },
-  ];
-
+// -----------------------------------------
+// ADMIN ROUTE – returns ALL reviews
+// -----------------------------------------
+app.get("/api/reviews/all", (req, res) => {
   res.json(dummyReviews);
 });
 
-// Dummy POST endpoint (does not save anything)
+// -----------------------------------------
+// POST – submit new review
+// -----------------------------------------
 app.post("/api/reviews", (req, res) => {
-  console.log("Received new review:", req.body);
-  res.json({ message: "Dummy POST received!", data: req.body });
+  const { coach_id, reviewer_name, reviewer_role, rating, title, body } =
+    req.body;
+
+  if (!reviewer_name || !reviewer_role || !rating || !title || !body) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  const newReview = {
+    id: dummyReviews.length + 1,
+    coach_id,
+    reviewer_name,
+    reviewer_role,
+    rating,
+    title,
+    body,
+    date: Date.now(),
+    published: false, // default: hidden until admin publishes
+  };
+
+  dummyReviews.push(newReview);
+  res.status(201).json({ message: "Review added", review: newReview });
 });
 
-// Start server
+// -----------------------------------------
+// PATCH – toggle published/unpublished
+// -----------------------------------------
+app.patch("/api/reviews/:id/publish", (req, res) => {
+  const id = Number(req.params.id);
+  const { published } = req.body;
+
+  const review = dummyReviews.find((r) => r.id === id);
+  if (!review) return res.status(404).json({ error: "Review not found" });
+
+  review.published = Boolean(published);
+
+  res.json({ message: "Publish status updated", review });
+});
+
+// -----------------------------------------
+// START SERVER
+// -----------------------------------------
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Dummy API running on port ${PORT}`);
+  console.log(`API running on port ${PORT}`);
 });

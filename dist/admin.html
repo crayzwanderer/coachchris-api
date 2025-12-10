@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Coach Robinson – Admin Dashboard</title>
+
     <style>
       body {
         font-family: sans-serif;
@@ -11,7 +12,6 @@
         margin: 0;
         padding: 2rem;
       }
-
       h1 {
         text-align: center;
         color: #222;
@@ -23,22 +23,11 @@
       }
 
       .review {
-        background: #ffffff;
+        background: #fff;
         border-radius: 10px;
+        padding: 1rem;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        padding: 1rem 1.2rem;
         margin-bottom: 1.5rem;
-      }
-
-      .review strong {
-        font-size: 1.1rem;
-        color: #111;
-      }
-
-      .meta {
-        font-size: 0.9rem;
-        color: #555;
-        margin-top: 6px;
       }
 
       .toggle-switch {
@@ -46,15 +35,12 @@
         display: inline-block;
         width: 50px;
         height: 24px;
-        margin-top: 10px;
       }
-
       .toggle-switch input {
         opacity: 0;
         width: 0;
         height: 0;
       }
-
       .slider {
         position: absolute;
         cursor: pointer;
@@ -66,15 +52,14 @@
         transition: 0.3s;
         border-radius: 24px;
       }
-
       .slider:before {
-        position: absolute;
         content: "";
+        position: absolute;
         height: 18px;
         width: 18px;
         left: 3px;
         bottom: 3px;
-        background-color: white;
+        background: white;
         transition: 0.3s;
         border-radius: 50%;
       }
@@ -82,7 +67,6 @@
       .toggle-switch input:checked + .slider {
         background-color: #0ea5e9;
       }
-
       .toggle-switch input:checked + .slider:before {
         transform: translateX(26px);
       }
@@ -99,64 +83,99 @@
         opacity: 0;
         transition: opacity 0.3s;
       }
-
       #flash.show {
         opacity: 1;
       }
     </style>
   </head>
+
   <body>
     <h1>Admin Review Dashboard</h1>
+
     <div id="reviewList"></div>
     <div id="flash"></div>
 
     <script>
-      console.log("Admin dashboard JS loaded ✅");
-
+      const API =
+        "https://coachchris-api-production.up.railway.app/api/reviews";
       const flash = document.getElementById("flash");
 
-      function showFlash(message) {
-        flash.textContent = message;
+      function showFlash(msg) {
+        flash.textContent = msg;
         flash.classList.add("show");
         setTimeout(() => flash.classList.remove("show"), 2000);
       }
 
       async function loadReviews() {
         try {
-          const res = await fetch("http://localhost:3000/api/reviews/all");
+          const res = await fetch(API); // ✅ CORRECT ROUTE
           const reviews = await res.json();
 
           const container = document.getElementById("reviewList");
           container.innerHTML = "";
 
           if (!reviews.length) {
-            container.innerHTML = "<p>No reviews found.</p>";
+            container.innerHTML = "<p>No reviews yet.</p>";
             return;
           }
 
           reviews.forEach((r) => {
             const div = document.createElement("div");
             div.className = "review";
+
             div.innerHTML = `
-          <strong>${r.title}</strong> — <em>${r.reviewer_name}</em><br/>
-          <p>${r.body}</p>
-          <div class="meta">⭐ ${r.rating} | ${r.reviewer_role}</div>
-          <div style="margin-top: 8px; font-size: 0.85rem; color: ${
-            r.published ? "#0ea5e9" : "#999"
-          };">
-            Status: <strong>${
-              r.published ? "Published" : "Unpublished"
-            }</strong>
-          </div>
-        `;
+        <strong>${r.title}</strong> — <em>${r.reviewer_name}</em>
+        <p>${r.body}</p>
+        <div class="meta">⭐ ${r.rating} | ${r.reviewer_role}</div>
+
+        <label class="toggle-switch">
+          <input type="checkbox" data-id="${r.id}" ${
+              r.published ? "checked" : ""
+            }>
+          <span class="slider"></span>
+        </label>
+        <span style="margin-left:8px;">${
+          r.published ? "Published" : "Unpublished"
+        }</span>
+      `;
+
             container.appendChild(div);
           });
+
+          attachToggleListeners();
         } catch (err) {
-          console.error("Failed to load reviews", err);
+          console.error("Failed to load reviews:", err);
         }
       }
 
-      loadReviews(); // Initial fetch
+      function attachToggleListeners() {
+        document.querySelectorAll("[data-id]").forEach((checkbox) => {
+          checkbox.addEventListener("change", async () => {
+            const id = checkbox.dataset.id;
+            const published = checkbox.checked;
+
+            try {
+              const res = await fetch(`${API}/${id}/publish`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ published }),
+              });
+
+              if (!res.ok) throw new Error("Update failed");
+
+              showFlash(
+                published ? "Review Published ✔" : "Review Unpublished ✖"
+              );
+              loadReviews();
+            } catch (err) {
+              console.error("Publish toggle failed:", err);
+              showFlash("⚠ Could not update review");
+            }
+          });
+        });
+      }
+
+      loadReviews();
     </script>
   </body>
 </html>

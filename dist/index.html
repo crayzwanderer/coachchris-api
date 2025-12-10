@@ -685,15 +685,20 @@ Beyond the court, Chris amplifies his impact through the written word — servin
       </div>
     </footer>
 
-
-
-    
-    <script>
+<script>
 document.addEventListener("DOMContentLoaded", () => {
-  // --- Utilities ---
+
+  // -------------------------------------
+  // CONFIG
+  // -------------------------------------
+  const API_BASE = "https://coachchris-api-production.up.railway.app/api/reviews";
+
   const $ = (sel, el = document) => el.querySelector(sel);
   const $$ = (sel, el = document) => Array.from(el.querySelectorAll(sel));
 
+  // -------------------------------------
+  // UTIL HELPERS
+  // -------------------------------------
   function escapeHTML(s) {
     return String(s).replace(/[&<>\"']/g, (m) => ({
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
@@ -706,115 +711,150 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function starSVG(filled) {
-    const color = filled ? "url(#gradStar)" : "none";
-    const stroke = filled ? "none" : "#304059";
     return `
-      <svg class="star" viewBox="0 0 24 24" aria-hidden="true">
-        <defs><linearGradient id="gradStar" x1="0" x2="1"><stop offset="0" stop-color="#0ea5e9"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs>
-        <path d="M12 2.5l2.9 6 6.6.6-5 4.3 1.5 6.4-6-3.4-6 3.4 1.5-6.4-5-4.3 6.6-.6z" fill="${color}" stroke="${stroke}" stroke-width="1.2"/>
+      <svg class="star" viewBox="0 0 24 24">
+        <defs>
+          <linearGradient id="gradStar" x1="0" x2="1">
+            <stop offset="0" stop-color="#0ea5e9" />
+            <stop offset="1" stop-color="#a855f7" />
+          </linearGradient>
+        </defs>
+        <path d="M12 2.5l2.9 6 6.6.6-5 4.3 1.5 6.4-6-3.4-6 3.4 1.5-6.4-5-4.3 6.6-.6z"
+          fill="${filled ? "url(#gradStar)" : "none"}"
+          stroke="${filled ? "none" : "#304059"}"
+          stroke-width="1.2"
+        />
       </svg>`;
   }
 
-  // --- Global Data ---
   let reviews = [];
   const isAdmin = window.location.pathname.includes("admin");
 
-  // --- Render for Public Users ---
+  // -------------------------------------
+  // PUBLIC REVIEW RENDER
+  // -------------------------------------
   function renderPublicReviews(list) {
-    const avg = list.length ? (list.reduce((a, b) => a + b.rating, 0) / list.length).toFixed(1) : "—";
-    $("#avgScore").textContent = `Average: ${avg}★`;
+    $("#avgScore").textContent = `Average: ${
+      list.length ? (list.reduce((a, b) => a + b.rating, 0) / list.length).toFixed(1) : "—"
+    }★`;
+
     $("#countBadge").textContent = `${list.length} review${list.length === 1 ? "" : "s"}`;
 
-    $("#reviewsGrid").innerHTML = list.map(item => {
-      const stars = Array.from({ length: 5 }).map((_, i) => starSVG(i < item.rating)).join("");
-      return `
-        <article class="review" aria-label="Review">
-          <div class="stars" aria-hidden="true">${stars}</div>
-          <h3 style="margin:6px 0 4px">${escapeHTML(item.title)}</h3>
-          <p>${escapeHTML(item.body)}</p>
-          <div class="meta">— ${escapeHTML(item.reviewer_name)} • ${escapeHTML(item.reviewer_role)} • ${formatDate(item.date)}</div>
-        </article>`;
-    }).join("");
+    $("#reviewsGrid").innerHTML = list.map(item => `
+      <article class="review">
+        <div class="stars">${Array.from({ length: 5 }).map((_, i) => starSVG(i < item.rating)).join("")}</div>
+        <h3>${escapeHTML(item.title)}</h3>
+        <p>${escapeHTML(item.body)}</p>
+        <div class="meta">— ${escapeHTML(item.reviewer_name)} • ${escapeHTML(item.reviewer_role)} • ${formatDate(item.date)}</div>
+      </article>
+    `).join("");
   }
 
-// ⭐ Star Rating (button-based version)
-const starButtons = $$(".rating-chooser button");
-const ratingInput = $("#rating");
-
-if (starButtons.length && ratingInput) {
-  starButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const rating = Number(btn.dataset.rate);
-      ratingInput.value = rating;
-
-      // Update visual state
-      starButtons.forEach((b, i) => {
-        b.setAttribute("aria-pressed", i < rating ? "true" : "false");
-        b.classList.toggle("selected", i < rating);
-      });
-    });
-  });
-}
-
-
-
-
+  // -------------------------------------
+  // PUBLIC SORT / FILTER
+  // -------------------------------------
   function applySortFilter() {
-    let list = reviews.slice();
+    let list = [...reviews];
     const f = $("#filterBy")?.value;
-    if (f && f !== "all") list = list.filter(r => r.rating >= Number(f));
     const s = $("#sortBy")?.value;
+
+    if (f !== "all") list = list.filter(r => r.rating >= Number(f));
+
     list.sort((a, b) => {
       if (s === "highest") return b.rating - a.rating || b.date - a.date;
       if (s === "lowest") return a.rating - b.rating || a.date - b.date;
-      return b.date - a.date;
+      return b.date - a.date; // newest
     });
+
     renderPublicReviews(list);
   }
 
-  // --- Admin Review Rendering (no toggles) ---
-  async function renderAdminReviews(list) {
-    const container = document.getElementById("adminReviews");
-    container.innerHTML = '';
+  // -------------------------------------
+  // ADMIN RENDER
+  // -------------------------------------
+  function renderAdminReviews(list) {
+    const container = $("#adminReviews");
+    if (!container) return;
 
-    if (!list.length) {
-      container.innerHTML = '<p>No reviews found.</p>';
-      return;
-    }
+    container.innerHTML = list.map(r => `
+      <div class="review-item">
+        <h3>${escapeHTML(r.title)} (${r.rating}★)</h3>
+        <p>${escapeHTML(r.body)}</p>
+        <p><strong>${escapeHTML(r.reviewer_name)}</strong> — ${escapeHTML(r.reviewer_role)}</p>
 
-    list.forEach((review) => {
-      const wrapper = document.createElement("div");
-      wrapper.className = "review-item";
-      wrapper.innerHTML = `
-        <h3>${review.title} (${review.rating}★)</h3>
-        <p>${review.body}</p>
-        <p><strong>${review.reviewer_name}</strong> — ${review.reviewer_role}</p>
-        <p>Status: <strong>${review.published ? "Published" : "Unpublished"}</strong></p>
+        <label class="toggle-switch">
+          <input type="checkbox" data-id="${r.id}" ${r.published ? "checked" : ""}>
+          <span class="slider"></span>
+        </label>
+        <span style="margin-left:6px;">${r.published ? "Published" : "Unpublished"}</span>
+
         <hr>
-      `;
-      container.appendChild(wrapper);
+      </div>
+    `).join("");
+  }
+
+  // -------------------------------------
+  // ADMIN TOGGLE LISTENERS
+  // -------------------------------------
+  function attachToggleListeners() {
+    $$(".toggle-switch input").forEach((checkbox) => {
+      checkbox.addEventListener("change", async () => {
+        const id = checkbox.dataset.id;
+        const published = checkbox.checked;
+
+        try {
+          const res = await fetch(`${API_BASE}/${id}/publish`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ published })
+          });
+
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+          // NO FLASH HERE — only in admin.html
+          refreshReviews();
+        } catch (err) {
+          console.error("Toggle error:", err);
+          alert("Failed to update publish state.");
+        }
+      });
     });
   }
 
-  // --- Submit Review ---
+  // -------------------------------------
+  // LOAD REVIEWS
+  // -------------------------------------
+  async function refreshReviews() {
+    try {
+      const res = await fetch(API_BASE);
+      reviews = await res.json();
+
+      if (isAdmin) {
+        renderAdminReviews(reviews);
+        attachToggleListeners();
+      } else {
+        applySortFilter();
+      }
+    } catch (err) {
+      console.error("Error loading reviews:", err);
+    }
+  }
+
+  // -------------------------------------
+  // SUBMIT REVIEW
+  // -------------------------------------
   const form = $("#reviewForm");
   if (form) {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
+
       const formNote = $("#formNote");
-      formNote.textContent = "";
 
       const data = Object.fromEntries(new FormData(form).entries());
-      const errors = [];
-      if (!data.name?.trim()) errors.push("name");
-      if (!data.role?.trim()) errors.push("role");
       const rating = Number(data.rating);
-      if (!rating || rating < 1 || rating > 5) errors.push("rating");
-      if (!data.title?.trim()) errors.push("title");
-      if (!data.body?.trim()) errors.push("story");
 
-      if (errors.length) {
-        formNote.textContent = `Please complete: ${errors.join(", ")}.`;
+      if (!data.name || !data.role || !rating || !data.title || !data.body) {
+        formNote.textContent = "Please complete all fields.";
         formNote.style.color = "var(--warn)";
         return;
       }
@@ -829,80 +869,43 @@ if (starButtons.length && ratingInput) {
       };
 
       try {
-        const res = await fetch("https://coachchris-api.up.railway.app/api/reviews", {
+        const res = await fetch(API_BASE, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newReview),
         });
 
-        if (!res.ok) throw new Error("Failed to submit review");
+        if (!res.ok) throw new Error("Submit failed");
 
         form.reset();
-formNote.textContent = "Thanks for sharing your story!";
-formNote.style.color = "var(--ok)";
-ratingInput.value = ""; // reset the hidden input
+        formNote.textContent = "Thanks for your review!";
+        formNote.style.color = "var(--ok)";
 
-// Unselect all stars visually
-starButtons.forEach((btn) => {
-  btn.classList.remove("selected");
-  btn.setAttribute("aria-pressed", "false");
-});
+        $$(".rating-chooser button").forEach(b => {
+          b.classList.remove("selected");
+          b.setAttribute("aria-pressed", "false");
+        });
 
-refreshReviewsFromServer(); // refresh view
-
+        refreshReviews();
       } catch (err) {
-        formNote.textContent = "Oops! Could not submit. Please try again.";
+        console.error(err);
+        formNote.textContent = "Submission failed. Try again.";
         formNote.style.color = "var(--warn)";
-        console.error("[submit review]", err);
       }
     });
   }
 
-  // --- Reload Reviews ---
-  async function refreshReviewsFromServer() {
-  try {
-    const res = await fetch(isAdmin
-      ? "https://coachchris-api.up.railway.app/api/reviews/all"
-      : "https://coachchris-api.up.railway.app/api/reviews"
-    );
-    reviews = await res.json();
-    isAdmin ? renderAdminReviews(reviews) : applySortFilter();
-  } catch (err) {
-    console.error("Error loading reviews", err);
-  }
-}
-
-//testing
-  // --- Init ---
-  refreshReviewsFromServer();
+  // -------------------------------------
+  // INIT
+  // -------------------------------------
+  refreshReviews();
 
   if (!isAdmin) {
     $("#sortBy")?.addEventListener("change", applySortFilter);
     $("#filterBy")?.addEventListener("change", applySortFilter);
-    $("#resetBtn")?.addEventListener("click", () => {
-      $("#sortBy").value = "newest";
-      $("#filterBy").value = "all";
-      applySortFilter();
-    });
-
-    const fill = $("#meterFill");
-    if (fill) {
-      let t = 0;
-      function tick() {
-        t += 0.008;
-        if (t > 1) t = 0;
-        const rightInset = Math.max(0, 50 - Math.sin(t * 2 * Math.PI) * 40);
-        fill.style.inset = `0 ${rightInset}% 0 0`;
-        requestAnimationFrame(tick);
-      }
-      tick();
-    }
-
-    $("#year").textContent = new Date().getFullYear();
   }
 });
 </script>
-
 
 
   </body>
