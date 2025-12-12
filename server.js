@@ -10,17 +10,24 @@ app.use(cors());
 app.use(express.json());
 
 // ---------------------------------------------
-// MYSQL CONNECTION USING RAILWAY VARIABLES
+// MYSQL CONNECTION (RAILWAY-SAFE)
 // ---------------------------------------------
 const pool = mysql.createPool({
-  host: process.env.MYSQLHOST,
-  user: process.env.MYSQLUSER,
-  password: process.env.MYSQLPASSWORD,
-  database: process.env.MYSQLDATABASE,
-  port: process.env.MYSQLPORT,
+  host: process.env.MYSQL_HOST,
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE,
+  port: Number(process.env.MYSQL_PORT),
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
+});
+
+// ---------------------------------------------
+// HEALTH CHECK (VERY IMPORTANT FOR RAILWAY)
+// ---------------------------------------------
+app.get("/", (req, res) => {
+  res.status(200).send("API is alive");
 });
 
 // ---------------------------------------------
@@ -29,7 +36,7 @@ const pool = mysql.createPool({
 app.get("/api/reviews", async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "SELECT * FROM reviews WHERE published = 1 ORDER BY date DESC"
+      "SELECT * FROM reviews WHERE published = 1 ORDER BY created_at DESC"
     );
     res.json(rows);
   } catch (error) {
@@ -40,19 +47,20 @@ app.get("/api/reviews", async (req, res) => {
 
 app.get("/api/reviews/all", async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT * FROM reviews ORDER BY date DESC");
+    const [rows] = await pool.query(
+      "SELECT * FROM reviews ORDER BY created_at DESC"
+    );
     res.json(rows);
   } catch (error) {
-    console.error("❌ Error fetching ALL reviews:", error);
+    console.error("❌ Error fetching all reviews:", error);
     res.status(500).json({ error: "Database error" });
   }
 });
 
-// --------------------------------------------------
-// 🚀 FIXED: ONLY ONE LISTEN CALL + using Railway PORT
-// --------------------------------------------------
-const PORT = process.env.PORT || 3000;
-
+// ---------------------------------------------
+// START SERVER (ONLY ONCE)
+// ---------------------------------------------
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`🚀 API running on port ${PORT}`);
 });
