@@ -16,7 +16,7 @@ app.get("/", (req, res) => {
   res.send("Coach Chris API is alive");
 });
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT;
 
 // ❗ IMPORTANT: DO NOT bind host
 app.listen(PORT, () => {
