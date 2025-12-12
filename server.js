@@ -27,6 +27,17 @@ console.log("🧪 DB Config Check:", {
   port: dbConfig.port || "MISSING",
 });
 
+// --------------------
+// HEALTH CHECK (ADD HERE)
+// --------------------
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
+// --------------------
+// MYSQL POOL
+// --------------------
+
 const pool = mysql.createPool({
   ...dbConfig,
   waitForConnections: true,
