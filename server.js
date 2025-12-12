@@ -9,31 +9,34 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ---------------------------------------------
-// MYSQL CONNECTION (Railway)
-// ---------------------------------------------
+// -----------------------------
+// MYSQL CONNECTION (RAILWAY)
+// -----------------------------
+const dbConfig = {
+  host: process.env.MYSQL_HOST,
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE,
+  port: Number(process.env.MYSQL_PORT),
+};
+
+console.log("🧪 DB Config Check:", {
+  host: dbConfig.host || "MISSING",
+  user: dbConfig.user || "MISSING",
+  database: dbConfig.database || "MISSING",
+  port: dbConfig.port || "MISSING",
+});
+
 const pool = mysql.createPool({
-  host: process.env.MYSQLHOST,
-  user: process.env.MYSQLUSER,
-  password: process.env.MYSQLPASSWORD,
-  database: process.env.MYSQLDATABASE,
-  port: Number(process.env.MYSQLPORT),
+  ...dbConfig,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
 });
 
-// Optional sanity check (safe)
-console.log("🧪 DB Config Check:", {
-  host: process.env.MYSQLHOST ? "OK" : "MISSING",
-  user: process.env.MYSQLUSER ? "OK" : "MISSING",
-  database: process.env.MYSQLDATABASE ? "OK" : "MISSING",
-  port: process.env.MYSQLPORT ? "OK" : "MISSING",
-});
-
-// ---------------------------------------------
+// -----------------------------
 // ROUTES
-// ---------------------------------------------
+// -----------------------------
 app.get("/api/reviews", async (req, res) => {
   try {
     const [rows] = await pool.query(
@@ -41,7 +44,7 @@ app.get("/api/reviews", async (req, res) => {
     );
     res.json(rows);
   } catch (err) {
-    console.error("❌ Published reviews error:", err);
+    console.error("❌ Error fetching reviews:", err);
     res.status(500).json({ error: "Database error" });
   }
 });
@@ -51,16 +54,13 @@ app.get("/api/reviews/all", async (req, res) => {
     const [rows] = await pool.query("SELECT * FROM reviews ORDER BY date DESC");
     res.json(rows);
   } catch (err) {
-    console.error("❌ All reviews error:", err);
+    console.error("❌ Error fetching all reviews:", err);
     res.status(500).json({ error: "Database error" });
   }
 });
 
-// ---------------------------------------------
-// START SERVER (ONLY ONCE)
-// ---------------------------------------------
+// -----------------------------
 const PORT = process.env.PORT || 8080;
-
 app.listen(PORT, () => {
   console.log(`🚀 API running on port ${PORT}`);
 });
