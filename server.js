@@ -41,7 +41,6 @@ app.get("/", (req, res) => {
 });
 
 // -----------------------------
-// POST: save form submission
 app.post("/api/submissions", async (req, res) => {
   const { name, email, message } = req.body;
 
