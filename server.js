@@ -19,6 +19,13 @@ const pool = mysql.createPool({
   connectionLimit: 10,
 });
 
+console.log("🧪 DB ENV CHECK:", {
+  host: process.env.MYSQLHOST,
+  user: process.env.MYSQLUSER,
+  database: process.env.MYSQLDATABASE,
+  port: process.env.MYSQLPORT,
+});
+
 // -----------------------------
 // Healthcheck (Railway REQUIRED)
 // -----------------------------
