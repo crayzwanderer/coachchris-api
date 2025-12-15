@@ -35,13 +35,8 @@ app.get("/", (req, res) => {
 
 // -----------------------------
 // POST: save form submission
-// -----------------------------
 app.post("/api/submissions", async (req, res) => {
   const { name, email, message } = req.body;
-
-  if (!name || !email || !message) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
 
   try {
     await pool.query(
@@ -51,14 +46,13 @@ app.post("/api/submissions", async (req, res) => {
 
     res.status(201).json({ success: true });
   } catch (err) {
-    console.error("❌ DB insert error:", err);
+    console.error("❌ DB INSERT ERROR:", err);
     res.status(500).json({ error: "Database error" });
   }
 });
 
 // -----------------------------
 // GET: fetch submissions
-// -----------------------------
 app.get("/api/submissions", async (req, res) => {
   try {
     const [rows] = await pool.query(
@@ -66,7 +60,7 @@ app.get("/api/submissions", async (req, res) => {
     );
     res.json(rows);
   } catch (err) {
-    console.error("❌ DB fetch error:", err);
+    console.error("❌ DB SELECT ERROR:", err);
     res.status(500).json({ error: "Database error" });
   }
 });
