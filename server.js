@@ -6,9 +6,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// --------------------
-// DB CONNECTION
-// --------------------
+// -----------------------------
+// MySQL connection pool
+// -----------------------------
 const pool = mysql.createPool({
   host: process.env.MYSQL_HOST,
   user: process.env.MYSQL_USER,
@@ -19,69 +19,59 @@ const pool = mysql.createPool({
   connectionLimit: 10,
 });
 
-// --------------------
-// HEALTHCHECK (Railway)
-// --------------------
+// -----------------------------
+// Healthcheck (Railway REQUIRED)
+// -----------------------------
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
 
-// --------------------
-// ROOT TEST
-// --------------------
+// -----------------------------
+// Root test
+// -----------------------------
 app.get("/", (req, res) => {
   res.send("Coach Chris API is alive");
 });
 
-// --------------------
-// POST: FORM → DB
-// --------------------
+// -----------------------------
+// POST: save form submission
+// -----------------------------
 app.post("/api/submissions", async (req, res) => {
-  const { name, role, rating, title, message } = req.body;
+  const { name, email, message } = req.body;
+
+  if (!name || !email || !message) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
 
   try {
-    // Get coach_id (fallback if missing)
-    const [[coach]] = await pool.query("SELECT id FROM coaches LIMIT 1");
-
     await pool.query(
-      `INSERT INTO reviews 
-        (coach_id, reviewer_name, reviewer_role, rating, title, body, published, source)
-       VALUES (?, ?, ?, ?, ?, ?, 0, 'Web')`,
-      [
-        coach.id,
-        name,
-        role || "Client",
-        rating || 5,
-        title || "Website Submission",
-        message,
-      ]
+      "INSERT INTO submissions (name, email, message) VALUES (?, ?, ?)",
+      [name, email, message]
     );
 
     res.status(201).json({ success: true });
   } catch (err) {
-    console.error("❌ INSERT ERROR:", err);
+    console.error("❌ DB insert error:", err);
     res.status(500).json({ error: "Database error" });
   }
 });
 
-// --------------------
-// GET: DISPLAY SUBMISSIONS
-// --------------------
+// -----------------------------
+// GET: fetch submissions
+// -----------------------------
 app.get("/api/submissions", async (req, res) => {
   try {
     const [rows] = await pool.query(
-      `SELECT reviewer_name, reviewer_role, rating, title, body, created_at
-       FROM reviews
-       ORDER BY created_at DESC`
+      "SELECT * FROM submissions ORDER BY created_at DESC"
     );
     res.json(rows);
   } catch (err) {
-    console.error("❌ FETCH ERROR:", err);
+    console.error("❌ DB fetch error:", err);
     res.status(500).json({ error: "Database error" });
   }
 });
 
-// --------------------
+// -----------------------------
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`🚀 Server listening on port ${PORT}`);
