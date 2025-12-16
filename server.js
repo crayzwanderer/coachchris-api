@@ -11,6 +11,9 @@ app.use(express.json());
 // -----------------------------
 const pool = mysql.createPool(process.env.MYSQL_URL);
 
+const [dbCheck] = await pool.query("SELECT DATABASE() AS db");
+console.log("🔍 CONNECTED DATABASE:", dbCheck[0].db);
+
 console.log("🧪 DB ENV CHECK: using MYSQL_URL");
 
 // -----------------------------
