@@ -44,10 +44,21 @@ app.post("/api/submissions", async (req, res) => {
 
     res.status(201).json({ success: true });
   } catch (err) {
-    console.error("❌ DB INSERT ERROR:", err);
-    res.status(500).json({ error: "Database error" });
-  }
-});
+  console.error("❌ DB ERROR FULL:", {
+    message: err.message,
+    code: err.code,
+    errno: err.errno,
+    sqlState: err.sqlState,
+    sqlMessage: err.sqlMessage,
+    sql: err.sql,
+  });
+
+  res.status(500).json({
+    error: "Database error",
+    details: err.message,
+  });
+}
+
 
 // -----------------------------
 // GET: fetch submissions
