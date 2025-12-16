@@ -9,8 +9,6 @@ app.use(express.json());
 // -----------------------------
 // MySQL connection pool
 // -----------------------------
-import mysql from "mysql2/promise";
-
 const pool = mysql.createPool(process.env.MYSQL_URL);
 
 console.log("🧪 DB ENV CHECK: using MYSQL_URL");
@@ -30,6 +28,8 @@ app.get("/", (req, res) => {
 });
 
 // -----------------------------
+// POST: save submission
+// -----------------------------
 app.post("/api/submissions", async (req, res) => {
   const { name, email, message } = req.body;
 
@@ -48,6 +48,7 @@ app.post("/api/submissions", async (req, res) => {
 
 // -----------------------------
 // GET: fetch submissions
+// -----------------------------
 app.get("/api/submissions", async (req, res) => {
   try {
     const [rows] = await pool.query(
