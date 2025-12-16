@@ -9,10 +9,22 @@ app.use(express.json());
 // -----------------------------
 // MySQL connection pool
 // -----------------------------
-const pool = mysql.createPool(process.env.MYSQL_URL);
+const pool = mysql.createPool({
+  uri: process.env.MYSQL_URL,
+  waitForConnections: true,
+  connectionLimit: 5,
+  queueLimit: 0,
+});
 
-const [dbCheck] = await pool.query("SELECT DATABASE() AS db");
-console.log("🔍 CONNECTED DATABASE:", dbCheck[0].db);
+// ✅ DB sanity check (non-blocking)
+(async () => {
+  try {
+    const [rows] = await pool.query("SELECT DATABASE() AS db");
+    console.log("🔍 CONNECTED DATABASE:", rows[0].db);
+  } catch (err) {
+    console.error("❌ DB CONNECTION CHECK FAILED:", err.message);
+  }
+})();
 
 console.log("🧪 DB ENV CHECK: using MYSQL_URL");
 
@@ -44,21 +56,21 @@ app.post("/api/submissions", async (req, res) => {
 
     res.status(201).json({ success: true });
   } catch (err) {
-  console.error("❌ DB ERROR FULL:", {
-    message: err.message,
-    code: err.code,
-    errno: err.errno,
-    sqlState: err.sqlState,
-    sqlMessage: err.sqlMessage,
-    sql: err.sql,
-  });
+    console.error("❌ DB INSERT ERROR FULL:", {
+      message: err.message,
+      code: err.code,
+      errno: err.errno,
+      sqlState: err.sqlState,
+      sqlMessage: err.sqlMessage,
+      sql: err.sql,
+    });
 
-  res.status(500).json({
-    error: "Database error",
-    details: err.message,
-  });
-}
-
+    res.status(500).json({
+      error: "Database error",
+      details: err.message,
+    });
+  }
+});
 
 // -----------------------------
 // GET: fetch submissions
@@ -70,13 +82,24 @@ app.get("/api/submissions", async (req, res) => {
     );
     res.json(rows);
   } catch (err) {
-    console.error("❌ DB SELECT ERROR:", err);
-    res.status(500).json({ error: "Database error" });
+    console.error("❌ DB SELECT ERROR FULL:", {
+      message: err.message,
+      code: err.code,
+      errno: err.errno,
+      sqlState: err.sqlState,
+      sqlMessage: err.sqlMessage,
+      sql: err.sql,
+    });
+
+    res.status(500).json({
+      error: "Database error",
+      details: err.message,
+    });
   }
 });
 
 // -----------------------------
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`🚀 Server listening on port ${PORT}`);
 });
