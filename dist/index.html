@@ -318,12 +318,12 @@
       }
 
       /* --- Reviews List --- */
-      .reviews-grid {
+      .submissions-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
         gap: 16px;
       }
-      .review {
+      .submissions {
         background: rgba(8, 13, 29, 0.65);
         border: 1px solid #1f2a3b;
         border-radius: 16px;
@@ -458,7 +458,7 @@
           <h1>Coach Robinson <span style="opacity: 0.65">• Reviews</span></h1>
         </a>
         <nav aria-label="Primary">
-          <a class="pill" href="#reviews">Reviews</a>
+          <a class="pill" href="#submissions">Reviews</a>
           <a class="pill" href="#write">Write a Review</a>
           <a class="pill" href="#about">About</a>
         </nav>
@@ -485,8 +485,8 @@
                 aria-label="Write a review for Coach Robinson"
                 >✍️ Write a Review Please</a
               >
-              <a href="#reviews" class="btn" aria-label="Read reviews"
-                >⭐ Read Reviews</a
+              <a href="#submissions" class="btn" aria-label="Read submissions"
+                >⭐ Read Submissions</a
               >
             </div>
             <div class="ribbon" aria-hidden="true">
@@ -520,19 +520,19 @@
 
       <!-- Reviews Summary -->
       <section
-        id="reviews"
+        id="submissions"
         class="section-card"
-        aria-labelledby="reviewsHeading"
+        aria-labelledby="submissionsHeading"
       >
         <div class="summary">
-          <h2 id="reviewsHeading" style="margin: 0">Reviews</h2>
+          <h2 id="submissionsHeading" style="margin: 0">Reviews</h2>
           <span class="badge" id="avgScore" aria-live="polite">Average: —</span>
           <span class="badge" id="countBadge">0 reviews</span>
           <span class="badge" id="filterBadge">All ratings</span>
         </div>
         <div class="actions" style="margin-bottom: 10px">
           <label for="sortBy" class="visually-hidden">Sort</label>
-          <select id="sortBy" aria-label="Sort reviews">
+          <select id="sortBy" aria-label="Sort submissions">
             <option value="newest">Newest</option>
             <option value="highest">Highest rated</option>
             <option value="lowest">Lowest rated</option>
@@ -545,7 +545,7 @@
           </select>
           
         </div>
-        <div class="reviews-grid" id="reviewsGrid" aria-live="polite"></div>
+        <div class="submissions-grid" id="submissionsGrid" aria-live="polite"></div>
         <p class="note" style="margin-top: 12px">
           Moderation note: Submitted reviews appear instantly on this page
           (client‑side demo). For production, connect to a backend, store
@@ -556,7 +556,7 @@
       <!-- Write a Review -->
       <section id="write" class="section-card" aria-labelledby="writeHeading">
         <h2 id="writeHeading">Write a Review</h2>
-        <form id="reviewForm" novalidate>
+        <form id="submissionsForm" novalidate>
           <div class="full">
             <label for="name">Your name</label>
             <input
@@ -666,6 +666,49 @@
 Beyond the court, Chris amplifies his impact through the written word — serving for five years as a scout and writer for Prep Hoops Wisconsin, and as a national contributor to Prep Hoops Next, where he continues to spotlight rising talent and shape the future of the game.
         </p>
       </section>
+
+      <section id="write" class="section-card" aria-labelledby="writeHeading">
+        <h2 id="writeHeading">Contact Me</h2>
+        <form id="submissionsForm" novalidate>
+         <form id="submissionsForm" novalidate>
+
+  <div class="full">
+    <label for="name">Your name</label>
+    <input
+      id="name"
+      name="name"
+      placeholder="e.g., Jordan R."
+      autocomplete="name"
+      required
+    />
+  </div>
+
+  <div class="full">
+    <label for="email">Your email</label>
+    <input
+      id="email"
+      name="email"
+      type="email"
+      placeholder="you@email.com"
+      autocomplete="email"
+      required
+    />
+  </div>
+
+  <div class="full">
+    <label for="message">Message</label>
+    <textarea
+      id="message"
+      name="message"
+      placeholder="Share your experience…"
+      required
+    ></textarea>
+  </div>
+
+  <button type="submit">Submit</button>
+</form>
+
+         
     </main>
 
     <footer>
@@ -691,7 +734,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // -------------------------------------
   // CONFIG
   // -------------------------------------
-  const API_BASE = "https://coachchris-api-production.up.railway.app/api/reviews";
+  const API_BASE = "https://coachchris-api-production.up.railway.app/api/submissions";
 
   const $ = (sel, el = document) => el.querySelector(sel);
   const $$ = (sel, el = document) => Array.from(el.querySelectorAll(sel));
@@ -763,20 +806,20 @@ if (starButtons.length && ratingInput) {
       </svg>`;
   }
 
-  let reviews = [];
+  let submissions = [];
   const isAdmin = window.location.pathname.includes("admin");
 
   // -------------------------------------
   // PUBLIC REVIEW RENDER
   // -------------------------------------
-  function renderPublicReviews(list) {
+  function renderPublicSubmissions(list) {
     $("#avgScore").textContent = `Average: ${
       list.length ? (list.reduce((a, b) => a + b.rating, 0) / list.length).toFixed(1) : "—"
     }★`;
 
     $("#countBadge").textContent = `${list.length} review${list.length === 1 ? "" : "s"}`;
 
-    $("#reviewsGrid").innerHTML = list.map(item => `
+    $("#submissionsGrid").innerHTML = list.map(item => `
       <article class="review">
         <div class="stars">${Array.from({ length: 5 }).map((_, i) => starSVG(i < item.rating)).join("")}</div>
         <h3>${escapeHTML(item.title)}</h3>
@@ -790,7 +833,7 @@ if (starButtons.length && ratingInput) {
   // PUBLIC SORT / FILTER
   // -------------------------------------
   function applySortFilter() {
-    let list = [...reviews];
+    let list = [...submissions];
     const f = $("#filterBy")?.value;
     const s = $("#sortBy")?.value;
 
@@ -802,14 +845,14 @@ if (starButtons.length && ratingInput) {
       return b.date - a.date; // newest
     });
 
-    renderPublicReviews(list);
+    renderPublicSubmissions(list);
   }
 
   // -------------------------------------
   // ADMIN RENDER
   // -------------------------------------
-  function renderAdminReviews(list) {
-    const container = $("#adminReviews");
+  function renderAdminSubmissions(list) {
+    const container = $("#adminSubmissions");
     if (!container) return;
 
     container.innerHTML = list.map(r => `
@@ -848,7 +891,7 @@ if (starButtons.length && ratingInput) {
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
           // NO FLASH HERE — only in admin.html
-          refreshReviews();
+          refreshSubmissions();
         } catch (err) {
           console.error("Toggle error:", err);
           alert("Failed to update publish state.");
@@ -860,81 +903,81 @@ if (starButtons.length && ratingInput) {
   // -------------------------------------
   // LOAD REVIEWS
   // -------------------------------------
-  async function refreshReviews() {
+  async function refreshSubmissions() {
     try {
       const res = await fetch(API_BASE);
-      reviews = await res.json();
+      submissions = await res.json();
 
       if (isAdmin) {
-        renderAdminReviews(reviews);
+        renderAdminSubmissions(submissions);
         attachToggleListeners();
       } else {
         applySortFilter();
       }
     } catch (err) {
-      console.error("Error loading reviews:", err);
+      console.error("Error loading submissions:", err);
     }
   }
 
   // -------------------------------------
-  // SUBMIT REVIEW
-  // -------------------------------------
-  const form = $("#reviewForm");
-  if (form) {
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
+// SUBMIT SUBMISSION (PHASE 2)
+// -------------------------------------
+const form = $("#submissionsForm");
 
-      const formNote = $("#formNote");
+if (form) {
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-      const data = Object.fromEntries(new FormData(form).entries());
-      const rating = Number(data.rating);
+    const formNote = $("#formNote");
 
-      if (!data.name || !data.role || !rating || !data.title || !data.body) {
-        formNote.textContent = "Please complete all fields.";
-        formNote.style.color = "var(--warn)";
-        return;
-      }
+    const nameInput = $("#name");
+    const emailInput = $("#email");
+    const messageInput = $("#message");
 
-      const newReview = {
-        coach_id: 1,
-        reviewer_name: data.name.trim(),
-        reviewer_role: data.role,
-        rating,
-        title: data.title.trim(),
-        body: data.body.trim(),
-      };
+    if (!nameInput || !emailInput || !messageInput) {
+      console.error("Form inputs missing");
+      return;
+    }
 
-      try {
-        const res = await fetch(API_BASE, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(newReview),
-        });
+    const payload = {
+      name: nameInput.value.trim(),
+      email: emailInput.value.trim(),
+      message: messageInput.value.trim(),
+    };
 
-        if (!res.ok) throw new Error("Submit failed");
+    if (!payload.name || !payload.email || !payload.message) {
+      formNote.textContent = "Please complete all fields.";
+      formNote.style.color = "var(--warn)";
+      return;
+    }
 
-        form.reset();
-        formNote.textContent = "Thanks for your review!";
-        formNote.style.color = "var(--ok)";
+    try {
+      const res = await fetch(API_BASE, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-        $$(".rating-chooser button").forEach(b => {
-          b.classList.remove("selected");
-          b.setAttribute("aria-pressed", "false");
-        });
+      if (!res.ok) throw new Error("Submit failed");
 
-        refreshReviews();
-      } catch (err) {
-        console.error(err);
-        formNote.textContent = "Submission failed. Try again.";
-        formNote.style.color = "var(--warn)";
-      }
-    });
-  }
+      form.reset();
+      formNote.textContent = "Message sent successfully!";
+      formNote.style.color = "var(--ok)";
+
+      refreshSubmissions();
+    } catch (err) {
+      console.error("Submit error:", err);
+      formNote.textContent = "Submission failed. Try again.";
+      formNote.style.color = "var(--warn)";
+    }
+  });
+}
+
 
   // -------------------------------------
   // INIT
   // -------------------------------------
-  refreshReviews();
+  refreshSubmissions();
 
   if (!isAdmin) {
     $("#sortBy")?.addEventListener("change", applySortFilter);
