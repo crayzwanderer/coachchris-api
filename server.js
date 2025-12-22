@@ -2,6 +2,7 @@
 import express from "express";
 import cors from "cors";
 import db from "./src/db.js";
+import "dotenv/config";
 
 const app = express();
 
@@ -111,9 +112,16 @@ app.get("/api/test-db", async (req, res) => {
 });
 
 /* ---------------------------------------------------
-   Start server (RAILWAY-CORRECT)
+   Railway health check (REQUIRED)
 --------------------------------------------------- */
-const PORT = process.env.PORT || 8080;
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
+/* ---------------------------------------------------
+   Start server (Railway-safe)
+--------------------------------------------------- */
+const PORT = Number(process.env.PORT) || 8080;
 
 console.log("🔎 USING PORT:", PORT);
 
