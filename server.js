@@ -1,105 +1,122 @@
+// server.js
 import express from "express";
 import cors from "cors";
-import mysql from "mysql2/promise";
+import db from "./src/db.js";
 
 const app = express();
-app.use(cors());
+
+/* ---------------------------------------------------
+   CORS – allow Netlify + local dev
+--------------------------------------------------- */
+const allowedOrigins = [
+  "https://coachchris.netlify.app",
+  "http://127.0.0.1:5500",
+  "http://localhost:5500",
+];
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      console.warn("Blocked by CORS:", origin);
+      return callback(new Error("Not allowed by CORS"));
+    },
+    methods: ["GET", "POST", "OPTIONS"],
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
-// -----------------------------
-// MySQL connection pool
-// -----------------------------
-const pool = mysql.createPool({
-  uri: process.env.MYSQL_URL,
-  waitForConnections: true,
-  connectionLimit: 5,
-  queueLimit: 0,
-});
-
-// ✅ DB sanity check (non-blocking)
-(async () => {
-  try {
-    const [rows] = await pool.query("SELECT DATABASE() AS db");
-    console.log("🔍 CONNECTED DATABASE:", rows[0].db);
-  } catch (err) {
-    console.error("❌ DB CONNECTION CHECK FAILED:", err.message);
-  }
-})();
-
-console.log("🧪 DB ENV CHECK: using MYSQL_URL");
-
-// -----------------------------
-// Healthcheck (Railway REQUIRED)
-// -----------------------------
-app.get("/health", (req, res) => {
-  res.status(200).json({ status: "ok" });
-});
-
-// -----------------------------
-// Root test
-// -----------------------------
+/* ---------------------------------------------------
+   Health check
+--------------------------------------------------- */
 app.get("/", (req, res) => {
-  res.send("Coach Chris API is alive");
+  res.send("🚀 Coach Robinson Reviews API is running");
 });
 
-// -----------------------------
-// POST: save submission
-// -----------------------------
-app.post("/api/submissions", async (req, res) => {
-  const { name, email, message } = req.body;
+/* ---------------------------------------------------
+   Mock reviews (temporary)
+--------------------------------------------------- */
+let reviews = [
+  {
+    id: 1,
+    coach_id: 1,
+    reviewer_name: "Jordan R.",
+    reviewer_role: "Athlete",
+    rating: 5,
+    title: "Confidence through the roof",
+    body: "Coach Robinson pushed me in all the right ways.",
+    date: Date.now() - 1000 * 60 * 60 * 24 * 3,
+    published: true,
+    source: "Mock",
+  },
+];
 
+let nextId = reviews.length + 1;
+
+app.get("/api/reviews", (req, res) => {
+  const sorted = [...reviews].sort((a, b) => b.date - a.date);
+  res.json(sorted);
+});
+
+app.post("/api/reviews", (req, res) => {
+  const { coach_id, reviewer_name, reviewer_role, rating, title, body } =
+    req.body;
+
+  if (
+    !coach_id ||
+    !reviewer_name ||
+    !reviewer_role ||
+    !rating ||
+    !title ||
+    !body
+  ) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  const newReview = {
+    id: nextId++,
+    coach_id,
+    reviewer_name,
+    reviewer_role,
+    rating: Number(rating),
+    title,
+    body,
+    date: Date.now(),
+    published: true,
+    source: "Web (mock)",
+  };
+
+  reviews.push(newReview);
+  res.status(201).json(newReview);
+});
+
+/* ---------------------------------------------------
+   DB test route (THIS IS THE WIN)
+--------------------------------------------------- */
+app.get("/api/test-db", async (req, res) => {
   try {
-    await pool.query(
-      "INSERT INTO submissions (name, email, message) VALUES (?, ?, ?)",
-      [name, email, message]
-    );
-
-    res.status(201).json({ success: true });
+    const [rows] = await db.query("SELECT * FROM submissions LIMIT 1");
+    res.json({ success: true, rows });
   } catch (err) {
-    console.error("❌ DB INSERT ERROR FULL:", {
-      message: err.message,
-      code: err.code,
-      errno: err.errno,
-      sqlState: err.sqlState,
-      sqlMessage: err.sqlMessage,
-      sql: err.sql,
-    });
-
-    res.status(500).json({
-      error: "Database error",
-      details: err.message,
-    });
+    console.error("DB ERROR:", err);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// -----------------------------
-// GET: fetch submissions
-// -----------------------------
-app.get("/api/submissions", async (req, res) => {
-  try {
-    const [rows] = await pool.query(
-      "SELECT * FROM submissions ORDER BY created_at DESC"
-    );
-    res.json(rows);
-  } catch (err) {
-    console.error("❌ DB SELECT ERROR FULL:", {
-      message: err.message,
-      code: err.code,
-      errno: err.errno,
-      sqlState: err.sqlState,
-      sqlMessage: err.sqlMessage,
-      sql: err.sql,
-    });
-
-    res.status(500).json({
-      error: "Database error",
-      details: err.message,
-    });
-  }
-});
-
-// -----------------------------
+/* ---------------------------------------------------
+   Start server (RAILWAY-CORRECT)
+--------------------------------------------------- */
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
+
+console.log("🔎 USING PORT:", PORT);
+
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server listening on port ${PORT}`);
 });
