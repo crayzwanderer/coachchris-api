@@ -38,12 +38,24 @@ app.get("/", (req, res) => {
    CONTACT FORM
 --------------------------------------------------- */
 app.post("/api/contact", (req, res) => {
-  console.log("📦 RAW BODY:", req.body);
+  console.log("📦 HEADERS:", req.headers);
+  console.log("📦 BODY:", req.body);
 
-  const { name, email, message } = req.body ?? {};
+  // 🚨 DO NOT DESTRUCTURE UNTIL WE VERIFY
+  if (!req.body || typeof req.body !== "object") {
+    return res.status(400).json({
+      error: "Invalid or missing JSON body",
+    });
+  }
+
+  const name = req.body.name;
+  const email = req.body.email;
+  const message = req.body.message;
 
   if (!name || !email || !message) {
-    return res.status(400).json({ error: "Missing required fields" });
+    return res.status(400).json({
+      error: "Missing required fields",
+    });
   }
 
   console.log("📬 Contact received:", { name, email, message });
