@@ -13,6 +13,17 @@ const allowedOrigins = [
   "http://127.0.0.1:5500",
   "http://localhost:5500",
 ];
+app.post("/api/contact", (req, res) => {
+  const { name, email, message } = req.body;
+
+  if (!name || !email || !message) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  console.log("📬 Contact received:", { name, email, message });
+
+  res.status(201).json({ success: true });
+});
 
 app.use(
   cors({
