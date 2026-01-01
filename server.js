@@ -5,6 +5,9 @@ import db from "./src/db.js";
 
 const app = express();
 
+app.use(cors({ origin: true }));
+app.use(express.json()); // 🚨 MUST BE HERE
+
 /* ---------------------------------------------------
    CORS – allow Netlify + local dev
 --------------------------------------------------- */
@@ -14,15 +17,22 @@ const allowedOrigins = [
   "http://localhost:5500",
 ];
 app.post("/api/contact", (req, res) => {
-  const { name, email, message } = req.body;
+  try {
+    console.log("📦 RAW BODY:", req.body);
 
-  if (!name || !email || !message) {
-    return res.status(400).json({ error: "Missing required fields" });
+    const { name, email, message } = req.body || {};
+
+    if (!name || !email || !message) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    console.log("📬 Contact received:", { name, email, message });
+
+    res.status(201).json({ success: true });
+  } catch (err) {
+    console.error("🔥 CONTACT ROUTE ERROR:", err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
-
-  console.log("📬 Contact received:", { name, email, message });
-
-  res.status(201).json({ success: true });
 });
 
 app.use(
