@@ -40,6 +40,7 @@ app.get("/", (req, res) => {
 app.post("/api/contact", (req, res) => {
   console.log("📦 HEADERS:", req.headers);
   console.log("📦 BODY:", req.body);
+  console.log("🔥 CONTACT ROUTE VERSION: SAFE-NO-DESTRUCTURE");
 
   // 🚨 DO NOT DESTRUCTURE UNTIL WE VERIFY
   if (!req.body || typeof req.body !== "object") {
